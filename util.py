@@ -1,10 +1,10 @@
-from sympy import Poly
 import numpy as np
+import sympy
 import matplotlib.pyplot as plt
-import math
+import cmath
 
 
-def newton(function, x0, max_iter=5000, tol=1e-08, domain='R'):
+def newton(function, x0, max_iter=500, tol=1e-08):
     """ 
     Newton's method
 
@@ -12,128 +12,128 @@ def newton(function, x0, max_iter=5000, tol=1e-08, domain='R'):
     ----------
     function: string
         The function that we want to find its root
-    x0: float
-        The start point
+    x0: complex number
+        The start point, it looks like 5 + 5 * I
     tol: float  
         the max error we accept
     max_iter: int
         the max iteration we accept
-    domain: string
-        R for real, C for complex
 
     Returns
     -------
     int
         number of iteration
-    float
+    complex number
         root of func
     """
 
-    func = Poly(function, domain=domain)
-    # derivative of func
-    der_func = func.diff()
+    func = eval("lambda x: " + function)
+    deriv_func = eval("lambda x: " + str(sympy.diff(function)))
 
-    return _iterate_newton(func, der_func, x0, max_iter, tol)
+    return _iterate_newton(func, deriv_func, x0, max_iter, tol)
 
-def _iterate_newton(func, der_func, x0, max_iter=5000, tol=1e-08):
+def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
     Iteration process of newton's method
+
+    Parameters
+    ----------
+    func: function
+        the function
+    deriv_func: function
+        the derivative of the function
     """
 
-    # convert to a float
-    xi = 1.0 * x0
+    xi = x0
     for i in range(1, max_iter + 1):
-        yi = func.eval(xi)
+        fi = func(xi)
+        der_yi = deriv_func(xi)
 
-        # iterate
-        der_yi = der_func.eval(xi)
+        # failed
         if der_yi == 0:
-            # print('Derivative of given function was zero at', xi)
             return i, None
-        xj = xi - yi / der_yi
+
+        xj = xi - fi / der_yi
 
         # close enough
-        if math.isclose(xi, xj, rel_tol=0, abs_tol=tol):
-            # print('Close enough')
+        if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
             return i, xj
 
         xi = xj
 
-    # print('Exceed max iteration')
     return i, xi
 
 
-def newton_color_map(start, stop, num, function, max_iter=5000, tol=1e-08, domain='R'):
+def newton_color_map(function, interval, num, max_iter=500, tol=1e-08, decimals=5):
     """
     Compute the color map of newton's method
+
+    Parameters
+    ----------
+    interval: tuple with size of 4
+        define the range of real and complex parts
+        (real_min, real_max, complex_min, complex_max)
+    num: tuple with size of 2
+        define the number of points
+        (num_real, num_complex)
+
+    Returns
+    -------
+    tuple
+        all roots found in the interval
+    2D numpy array
+        class of a point
     """
-    
-    func = Poly(function, domain=domain)
-    # derivative of func
-    der_func = func.diff()
+    func = eval("lambda x: " + function)
+    deriv_func = eval("lambda x: " + str(sympy.diff(function)))
+    root_count = 0
+    roots = {}
+    color_map = np.zeros((num[0], num[1]))
 
-    xs = np.linspace(start, stop, num)
-    ys = np.zeros(num)
-    for i, x in enumerate(xs):
-        _, y = _iterate_newton(func, der_func, x, max_iter, tol)
-        ys[i] = y
+    for i, r in enumerate(np.linspace(interval[0], interval[1], num[0])):
+        for j, c in enumerate(np.linspace(interval[2], interval[3], num[1])):
+            x0 = r + c*1j
+            root = np.round(_iterate_newton(func, deriv_func, x0, max_iter, tol)[1], decimals)
+            if not root in roots:
+                roots[root] = root_count
+                root_count += 1
+            color_map[i, j] = roots[root]
 
-    return ys
-
-
-def test_plot():
-    grid = np.zeros([100, 100, 3],dtype=np.uint8)
-    grid[:, 1, 0] = 255
-    grid[:, 2, 0] = 255
-    grid[:, 3, 0] = 255
-
-    plt.imshow(grid)
-    plt.show()
+    return tuple(roots), color_map
 
 def test_newton():
-    # function = input('function: ')
-    # x0 = input('start point: ')
-    function = "4 + 4 * x - 7 * x**2 + 2 * x**3"
-    x0 = 5
-    iteration, root = newton(function, x0)
+    user_input = "x**3 - 1"
+    x0 = 1 + 1j
+    iteration, root = newton(user_input, x0)
     print("Iteration:", iteration)
-    print("Converge to:", f'{root:.15f}')
+    print("Converge to:", root)
 
     # for test purpose
-    func = Poly(function, domain='R')
+    func = sympy.Poly(user_input)
     print('\nAll roots from sympy')
-    roots = func.real_roots()
-    for r in roots:
-        print(r.evalf())
+    roots = func.all_roots()
+    print(roots)
 
 def test_newton_color_map():
-    # function = input('function: ')
-    # x0 = input('start point: ')
-    function = "4 + 2 * x - 7 * x**2 + 2 * x**3"
-    x0 = 5
-    start = -0.5
-    stop = 0.5
-    num = 2500
+    user_input = "x**3 - 1"
+    interval = (-2, 2, -2, 2)
+    num = (400, 400)
 
-    # TODO: what is the y axis
-    ys = newton_color_map(start, stop, num, function, x0)
-    ys = np.reshape(ys, (int(math.sqrt(num)),int(math.sqrt(num))))
-    # TODO: find an appropriate cmap
-    plt.imshow(ys, cmap=plt.cm.RdYlBu)
-    plt.show()
-
-    print(ys)
-
+    roots, color_map = newton_color_map(user_input, interval, num)
+    print(roots)
+    
     # for test purpose
-    func = Poly(function, domain='R')
+    func = sympy.Poly(user_input)
     print('\nAll roots from sympy')
-    roots = func.real_roots()
-    for r in roots:
-        print(r.evalf())
+    roots = func.all_roots()
+    print(roots)
+
+    # TODO: find a good cmap
+    plt.imshow(color_map.T, cmap='brg', extent=interval)
+    plt.show()
 
 if __name__ == "__main__":
     # test_newton()
 
     test_newton_color_map()
     
-    # test_plot()
