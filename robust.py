@@ -40,6 +40,51 @@ def robust(function, x0, max_iter=500, tol=1e-08):
     return _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)
 
 
+def _iterate_robust_step(func_list, func, deriv_func, xi, tol=1e-08):
+    fi = func(xi)
+    der_yi = deriv_func(xi)
+
+    # failed
+    if abs(der_yi * fi) < tol:
+        return None
+
+    k = 1
+    tmp_func = func_list[1]
+    A = abs(fi)
+    while abs(der_yi) < tol and k + 1 < len(func_list):
+        k += 1
+        tmp_func = func_list[k]
+        der_yi = tmp_func(xi)
+
+    uk = fi * der_yi.conjugate() / math.factorial(k)
+    A = max(A, abs(der_yi) / math.factorial(k))
+    j = k
+    while j + 1 < len(func_list):
+        j += 1
+        tmp_func = func_list[j]
+        der_yi = tmp_func(xi)
+        A = max(A, abs(der_yi) / math.factorial(j))
+
+    ukk = uk ** (k - 1)
+    gamma = 2 * ukk.real
+    delta = -2 * ukk.imag
+    if abs(gamma) >= abs(delta):
+        ck = abs(gamma)
+        if gamma < 0:
+            theta = 0
+        else:
+            theta = cmath.pi / k
+    else:
+        ck = abs(delta)
+        if delta < 0:
+            theta = cmath.pi / (2 * k)
+        else:
+            theta = 3 * cmath.pi / (2 * k)
+    Ck = ck * (abs(uk) ** (2 - k)) / (6 * A * A)
+    xj = xi + Ck * uk * cmath.exp(complex(0, 1) * theta) / abs(uk) / 3.0
+    return xj
+
+
 def _iterate_robust(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
     Iteration process of robust newton's method
@@ -54,47 +99,10 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
 
     xi = x0
     for i in range(1, max_iter + 1):
-        fi = func(xi)
-        der_yi = deriv_func(xi)
+        xj = _iterate_robust_step(func_list, func, deriv_func, xi, tol)
 
-        # failed
-        if abs(der_yi * fi) == 0:
+        if xj is None:
             return i, None
-
-        k = 1
-        tmp_func = func_list[1]
-        A = abs(fi)
-        while der_yi == 0 and k + 1 < len(func_list):
-            k += 1
-            tmp_func = func_list[k]
-            der_yi = tmp_func(xi)
-
-        uk = fi * der_yi.conjugate() / math.factorial(k)
-        A = max(A, abs(der_yi) / math.factorial(k))
-        j = k
-        while j + 1 < len(func_list):
-            j += 1
-            tmp_func = func_list[j]
-            der_yi = tmp_func(xi)
-            A = max(A, abs(der_yi) / math.factorial(j))
-
-        ukk = uk ** (k - 1)
-        gamma = 2 * ukk.real
-        delta = -2 * ukk.imag
-        if abs(gamma) >= abs(delta):
-            ck = abs(gamma)
-            if gamma < 0:
-                theta = 0
-            else:
-                theta = cmath.pi / k
-        else:
-            ck = abs(delta)
-            if delta < 0:
-                theta = cmath.pi / (2 * k)
-            else:
-                theta = 3 * cmath.pi / (2 * k)
-        Ck = ck * (abs(uk) ** (2 - k)) / (6 * A * A)
-        xj = xi + Ck * uk * cmath.exp(complex(0, 1) * theta) / abs(uk) / 3.0
 
         # close enough
         if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
