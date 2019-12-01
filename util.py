@@ -32,6 +32,18 @@ def newton(function, x0, max_iter=500, tol=1e-08):
 
     return _iterate_newton(func, deriv_func, x0, max_iter, tol)
 
+def _iterate_newton_step(func, deriv_func, xi):
+    fi = func(xi)
+    der_yi = deriv_func(xi)
+
+    # failed
+    if der_yi == 0:
+        return None
+
+    xj = xi - fi / der_yi
+
+    return xj
+
 def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
     Iteration process of newton's method
@@ -46,14 +58,11 @@ def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
 
     xi = x0
     for i in range(1, max_iter + 1):
-        fi = func(xi)
-        der_yi = deriv_func(xi)
-
+        xj = _iterate_newton_step(func, deriv_func, xi)
+        
         # failed
-        if der_yi == 0:
+        if xj is None:
             return i, None
-
-        xj = xi - fi / der_yi
 
         # close enough
         if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
@@ -64,7 +73,7 @@ def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     return i, xi
 
 
-def newton_color_map(function, interval, num, max_iter=500, tol=1e-08, decimals=5):
+def newton_color_map(function, interval, num, max_iter=1000, tol=1e-08, decimals=4):
     """
     Compute the color map of newton's method
 
@@ -115,9 +124,12 @@ def test_newton():
     print(roots)
 
 def test_newton_color_map():
-    user_input = "x**3 - 1"
+    # user_input = "x**3 - 2*x + 2"
+    # user_input = "x**2 - 2*x + 1"
+    user_input = "x**4 - 2*x**3 +2*x-1"
+    # user_input = "x**4-4*x**3-0.25*x**2+16*x-15"  # (x+2)(x-1.5)(x-2.0)(x-2.5)
     interval = (-2, 2, -2, 2)
-    num = (400, 400)
+    num = (300, 300)
 
     roots, color_map = newton_color_map(user_input, interval, num)
     print(roots)
