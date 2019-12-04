@@ -2,18 +2,11 @@ import numpy as np
 import sympy
 import matplotlib.pyplot as plt
 import cmath
-from matplotlib.colors import LinearSegmentedColormap
-
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, 0)]  # R -> G -> B
-n_bins = 4  # Discretizes the interpolation into bins
-cmap_name = 'my_cm'
-cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 
 
 def newton(function, x0, max_iter=500, tol=1e-08):
     """ 
     Newton's method
-
     Parameters
     ----------
     function: string
@@ -24,7 +17,6 @@ def newton(function, x0, max_iter=500, tol=1e-08):
         the max error we accept
     max_iter: int
         the max iteration we accept
-
     Returns
     -------
     int
@@ -38,22 +30,9 @@ def newton(function, x0, max_iter=500, tol=1e-08):
 
     return _iterate_newton(func, deriv_func, x0, max_iter, tol)
 
-def _iterate_newton_step(func, deriv_func, xi):
-    fi = func(xi)
-    der_yi = deriv_func(xi)
-
-    # failed
-    if der_yi == 0:
-        return None
-
-    xj = xi - fi / der_yi
-
-    return xj
-
 def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
     Iteration process of newton's method
-
     Parameters
     ----------
     func: function
@@ -64,26 +43,27 @@ def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
 
     xi = x0
     for i in range(1, max_iter + 1):
-        xj = _iterate_newton_step(func, deriv_func, xi)
-        
+        fi = func(xi)
+        der_yi = deriv_func(xi)
+
         # failed
-        if xj is None:
+        if der_yi == 0:
             return i, None
+
+        xj = xi - fi / der_yi
 
         # close enough
         if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
             return i, xj
 
         xi = xj
-    xi = -100
 
     return i, xi
 
 
-def newton_color_map(function, interval, num, max_iter=500, tol=1e-8, decimals=5):
+def newton_color_map(function, interval, num, max_iter=500, tol=1e-08, decimals=4):
     """
     Compute the color map of newton's method
-
     Parameters
     ----------
     interval: tuple with size of 4
@@ -92,7 +72,6 @@ def newton_color_map(function, interval, num, max_iter=500, tol=1e-8, decimals=5
     num: tuple with size of 2
         define the number of points
         (num_real, num_complex)
-
     Returns
     -------
     tuple
@@ -132,9 +111,6 @@ def test_newton():
 
 def test_newton_color_map():
     user_input = "x**3 - 2*x + 2"
-    # user_input = "x**2 - 2*x + 1"
-    # user_input = "x**4 - 2*x**3 +2*x-1"
-    # user_input = "x**4-4*x**3-0.25*x**2+16*x-15"  # (x+2)(x-1.5)(x-2.0)(x-2.5)
     interval = (-2, 2, -2, 2)
     num = (400, 400)
 
@@ -148,11 +124,10 @@ def test_newton_color_map():
     print(roots)
 
     # TODO: find a good cmap
-    plt.imshow(color_map.T, cmap=cm, extent=interval)
+    plt.imshow(color_map.T, cmap='brg', extent=interval)
     plt.show()
 
 if __name__ == "__main__":
     # test_newton()
 
     test_newton_color_map()
-    
