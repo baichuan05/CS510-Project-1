@@ -5,13 +5,13 @@ import cmath
 from matplotlib.colors import LinearSegmentedColormap
 import math
 
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0)]  # R -> G -> B
-n_bins = 4  # Discretizes the interpolation into bins
+colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1)]  # R -> G -> B
+n_bins = 5  # Discretizes the interpolation into bins
 cmap_name = 'my_cm'
 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 
 
-def newton(function, x0, max_iter=500, tol=1e-08):
+def newton(function, x0, max_iter=200, tol=1e-08):
     """
     Newton's method
     Parameters
@@ -57,6 +57,7 @@ def _iterate_robust_step(func_list, func, deriv_func, xi, tol=1e-08):
 
     # failed
     if abs(der_yi * fi) < tol:
+        print("end")
         return None
 
     k = 1
@@ -96,7 +97,7 @@ def _iterate_robust_step(func_list, func, deriv_func, xi, tol=1e-08):
     return xj
 
 
-def _iterate_newton(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
+def _iterate_newton(func_list, func, deriv_func, x0, max_iter=200, tol=1e-08):
     """
     Iteration process of newton's method
     Parameters
@@ -118,7 +119,7 @@ def _iterate_newton(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
         # close enough
         if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
             return i, xj
-        if abs(xj) >= abs(xi):
+        if abs(func(xj)) >= abs(func(xi)):
             xi = xj
             xj = _iterate_robust_step(func_list, func, deriv_func, xi, tol)
             if xj is None:
@@ -134,7 +135,7 @@ def _iterate_newton(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
     return i, xi
 
 
-def newton_color_map(function, interval, num, max_iter=500, tol=1e-8, decimals=5):
+def newton_color_map(function, interval, num, max_iter=200, tol=1e-8, decimals=5):
     """
     Compute the color map of newton's method
     Parameters
@@ -190,7 +191,7 @@ def test_newton():
 
 def test_newton_color_map():
     # user_input = "x**3 - 2*x + 2"
-    user_input = "x**3 - 1"
+    user_input = "x**4 - 1"
     # user_input = "x**4 - 2*x**3 +2*x-1"
     # user_input = "x**4-4*x**3-0.25*x**2+16*x-15"  # (x+2)(x-1.5)(x-2.0)(x-2.5)
     interval = (-2, 2, -2, 2)
