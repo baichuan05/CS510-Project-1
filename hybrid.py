@@ -38,12 +38,12 @@ def newton(function, x0, max_iter=200, tol=1e-08):
     return _iterate_newton(func, deriv_func, x0, max_iter, tol)
 
 
-def _iterate_newton_step(func, deriv_func, xi):
+def _iterate_newton_step(func, deriv_func, xi, tol):
     fi = func(xi)
     der_yi = deriv_func(xi)
 
     # failed
-    if der_yi == 0:
+    if abs(der_yi) < tol:
         return None
 
     xj = xi - fi / der_yi
@@ -110,7 +110,7 @@ def _iterate_newton(func_list, func, deriv_func, x0, max_iter=200, tol=1e-08):
 
     xi = x0
     for i in range(1, max_iter + 1):
-        xj = _iterate_newton_step(func, deriv_func, xi)
+        xj = _iterate_newton_step(func, deriv_func, xi, tol)
 
         # failed
         if xj is None:
