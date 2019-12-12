@@ -3,6 +3,7 @@ import sympy
 import matplotlib.pyplot as plt
 import cmath
 from matplotlib.colors import LinearSegmentedColormap
+import sys
 
 colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, 0)]  # R -> G -> B
 n_bins = 4  # Discretizes the interpolation into bins
@@ -38,6 +39,7 @@ def newton(function, x0, max_iter=500, tol=1e-08):
 
     return _iterate_newton(func, deriv_func, x0, max_iter, tol)
 
+
 def _iterate_newton_step(func, deriv_func, xi):
     fi = func(xi)
     der_yi = deriv_func(xi)
@@ -49,6 +51,7 @@ def _iterate_newton_step(func, deriv_func, xi):
     xj = xi - fi / der_yi
 
     return xj
+
 
 def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
@@ -110,12 +113,13 @@ def newton_color_map(function, interval, num, max_iter=500, tol=1e-8, decimals=5
         for j, c in enumerate(np.linspace(interval[2], interval[3], num[1])):
             x0 = r + c*1j
             root = np.round(_iterate_newton(func, deriv_func, x0, max_iter, tol)[1], decimals)
-            if not root in roots:
+            if root not in roots:
                 roots[root] = root_count
                 root_count += 1
             color_map[i, j] = roots[root]
 
     return tuple(roots), color_map
+
 
 def test_newton():
     user_input = "x**3 - 1"
@@ -130,11 +134,13 @@ def test_newton():
     roots = func.all_roots()
     print(roots)
 
+
 def test_newton_color_map():
-    user_input = "x**3 - 2*x + 2"
+    # user_input = "x**3 - 2*x + 2"
     # user_input = "x**2 - 2*x + 1"
     # user_input = "x**4 - 2*x**3 +2*x-1"
     # user_input = "x**4-4*x**3-0.25*x**2+16*x-15"  # (x+2)(x-1.5)(x-2.0)(x-2.5)
+    user_input = sys.stdin.readline()
     interval = (-2, 2, -2, 2)
     num = (400, 400)
 
@@ -151,8 +157,8 @@ def test_newton_color_map():
     plt.imshow(color_map.T, cmap=cm, extent=interval)
     plt.show()
 
+
 if __name__ == "__main__":
     # test_newton()
 
     test_newton_color_map()
-    

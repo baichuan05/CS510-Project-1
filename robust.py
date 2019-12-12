@@ -1,9 +1,10 @@
-import util
+import newton
 import matplotlib.pyplot as plt
 import numpy as np
 import sympy
 import cmath
 import math
+import sys
 
 
 def robust(function, x0, max_iter=500, tol=1e-08):
@@ -174,7 +175,8 @@ def test_robust():
 
 def test_robust_color_map():
     # user_input = "x**3 - 1"
-    user_input = "x**3 - 2*x +2"
+    # user_input = "x**3 - 2*x +2"
+    user_input = sys.stdin.readline()
     interval = (-2, 2, -2, 2)
     num = (400, 400)
 

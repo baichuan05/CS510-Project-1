@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import cmath
 from matplotlib.colors import LinearSegmentedColormap
 import math
+import sys
 
 colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1)]  # R -> G -> B
 n_bins = 5  # Discretizes the interpolation into bins
@@ -191,9 +192,10 @@ def test_newton():
 
 def test_newton_color_map():
     # user_input = "x**3 - 2*x + 2"
-    user_input = "x**4 - 1"
+    # user_input = "x**4 - 1"
     # user_input = "x**4 - 2*x**3 +2*x-1"
     # user_input = "x**4-4*x**3-0.25*x**2+16*x-15"  # (x+2)(x-1.5)(x-2.0)(x-2.5)
+    user_input = sys.stdin.readline()
     interval = (-2, 2, -2, 2)
     num = (400, 400)
 
