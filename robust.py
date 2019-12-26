@@ -1,54 +1,17 @@
-import newton
 import matplotlib.pyplot as plt
 import numpy as np
 import sympy
 import cmath
 import math
-import sys
 
 
-def robust(function, x0, max_iter=500, tol=1e-08):
-    """
-    Robust Newton's method
-
-    Parameters
-    ----------
-    function: string
-        The function that we want to find its root
-    x0: complex number
-        The start point, it looks like 5 + 5 * I
-    tol: float
-        the max error we accept
-    max_iter: int
-        the max iteration we accept
-
-    Returns
-    -------
-    int
-        number of iteration
-    complex number
-        root of func
-    """
-
-    func = eval("lambda x: " + function)
-    deriv_func = eval("lambda x: " + str(sympy.diff(function)))
-
-    func_list = [eval("lambda x: " + function)]
-    while function:
-        function = sympy.diff(function)
-        func_list.append(eval("lambda x: " + str(function)))
-
-    return _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)
-
-
-def _iterate_robust_step(func_list, func, deriv_func, xi, tol=1e-08):
+def _iterate_robust_step(func_list, func, deriv_func, xi, tol):
     fi = func(xi)
     der_yi = deriv_func(xi)
 
-    # failed
-    if abs(der_yi * fi) < tol:
-        return None
-
+    # # failed
+    # if abs(der_yi * fi) < tol:
+    #     return None
     k = 1
     tmp_func = func_list[1]
     A = abs(fi)
@@ -86,7 +49,7 @@ def _iterate_robust_step(func_list, func, deriv_func, xi, tol=1e-08):
     return xj
 
 
-def _iterate_robust(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
+def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     """
     Iteration process of robust newton's method
 
@@ -99,22 +62,28 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
 
     xi = x0
+    xj = xi
+    if abs(deriv_func(xj)) < tol:
+        print(xj, '1')
+        if abs(func(xj) * deriv_func(xj)) < tol:
+            print(xj, '2')
+    # print(func(xj) * deriv_func(xj), tol)
     for i in range(1, max_iter + 1):
+        if abs(func(xj) * deriv_func(xj)) < tol:
+            return i, xj
         xj = _iterate_robust_step(func_list, func, deriv_func, xi, tol)
-
-        if xj is None:
-            return i, None
+        # print(xj)
 
         # close enough
-        if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
-            return i, xj
+        # if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
+        #     return i, xj
 
         xi = xj
-
+    xi = -100
     return i, xi
 
 
-def robust_color_map(function, interval, num, max_iter=500, tol=1e-08, decimals=5):
+def robust_color_map(function, interval, num, max_iter=500, tol=1e-03, decimals=3):
     """
     Compute the color map of robust newton's method
 
@@ -134,51 +103,50 @@ def robust_color_map(function, interval, num, max_iter=500, tol=1e-08, decimals=
     2D numpy array
         class of a point
     """
+    x = sympy.Symbol('x')
     func = eval("lambda x: " + function)
-    deriv_func = eval("lambda x: " + str(sympy.diff(function)))
+    deriv_func = eval("lambda x: " + str(sympy.diff(function, x)))
     func_list = [eval("lambda x: " + str(function))]
     while function:
-        function = sympy.diff(function)
+        function = sympy.diff(function, x)
         func_list.append(eval("lambda x: " + str(function)))
 
     root_count = 0
     roots = {}
     color_map = np.zeros((num[0], num[1]))
 
-    for i, r in enumerate(np.linspace(interval[0], interval[1], num[0])):
-        for j, c in enumerate(np.linspace(interval[2], interval[3], num[1])):
-            x0 = r + c*1j
+
+    # for i, r in enumerate(np.linspace(interval[0], interval[1], num[0])):
+        # for j, c in enumerate(np.linspace(interval[2], interval[3], num[1])):
+    resolution = (interval[1] - interval[0]) / num[0]
+    r = interval[0]
+    for i in range(num[0]):
+        c = interval[2]
+        for j in range(num[0]):
+            x0 = np.round(r + c*1j, decimals)
+            # print(x0)
+            # if abs(x0 - 0.8164) < tol:
+            #     print(x0)
             root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
             if not root in roots:
                 roots[root] = root_count
                 root_count += 1
             color_map[i, j] = roots[root]
+            c += resolution
+        r += resolution
         print(i)
-
+    # x0 = 0.8164
+    # root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
+    roots[root] = root_count
     return tuple(roots), color_map
 
 
-def test_robust():
-    # user_input = "x**3 - 1"
-    user_input = "x**3 - 2*x +2"
-    x0 = 1 + 1j
-    iteration, root = robust(user_input, x0)
-    print("Iteration:", iteration)
-    print("Converge to:", root)
-
-    # for test purpose
-    func = sympy.Poly(user_input)
-    print('\nAll roots from sympy')
-    roots = func.all_roots()
-    print(roots)
-
-
 def test_robust_color_map():
-    # user_input = "x**3 - 1"
-    # user_input = "x**3 - 2*x +2"
-    user_input = sys.stdin.readline()
+    # user_input = "x**3 - 3*x"
+    user_input = "x**3 - 2 * x + 2"
+    # user_input = "x**4 - 2*x**3 +2*x-1"
     interval = (-2, 2, -2, 2)
-    num = (400, 400)
+    num = (4000, 4000)
 
     roots, color_map = robust_color_map(user_input, interval, num)
     print(roots)
@@ -195,6 +163,4 @@ def test_robust_color_map():
 
 
 if __name__ == "__main__":
-    # test_robust()
-
     test_robust_color_map()
