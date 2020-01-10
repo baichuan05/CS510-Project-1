@@ -3,7 +3,12 @@ import numpy as np
 import sympy
 import cmath
 import math
+from matplotlib.colors import LinearSegmentedColormap
 
+colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1)]  # R -> G -> B
+n_bins = 5  # Discretizes the interpolation into bins
+cmap_name = 'my_cm'
+cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 
 def _iterate_robust_step(func_list, func, deriv_func, xi, tol):
     fi = func(xi)
@@ -60,30 +65,22 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     deriv_func: function
         the derivative of the function
     """
-
+    tol2 = 1e-06
     xi = x0
-    xj = xi
-    if abs(deriv_func(xj)) < tol:
-        print(xj, '1')
-        if abs(func(xj) * deriv_func(xj)) < tol:
-            print(xj, '2')
-    # print(func(xj) * deriv_func(xj), tol)
+    # print(func(xi), deriv_func(xi), func(xi) * deriv_func(xi), tol2)
     for i in range(1, max_iter + 1):
-        if abs(func(xj) * deriv_func(xj)) < tol:
-            return i, xj
+        if abs(func(xi)) < tol2 or abs(deriv_func(xi)) < tol2:
+            return i, xi
+        # print(xi)
         xj = _iterate_robust_step(func_list, func, deriv_func, xi, tol)
         # print(xj)
-
-        # close enough
-        # if cmath.isclose(xi, xj, rel_tol=0, abs_tol=tol):
-        #     return i, xj
 
         xi = xj
     xi = -100
     return i, xi
 
 
-def robust_color_map(function, interval, num, max_iter=500, tol=1e-03, decimals=3):
+def robust_color_map(function, interval, num, max_iter=500, tol=2e-03, decimals=3):
     """
     Compute the color map of robust newton's method
 
@@ -112,41 +109,46 @@ def robust_color_map(function, interval, num, max_iter=500, tol=1e-03, decimals=
         func_list.append(eval("lambda x: " + str(function)))
 
     root_count = 0
-    roots = {}
+    roots = []
     color_map = np.zeros((num[0], num[1]))
 
-
-    # for i, r in enumerate(np.linspace(interval[0], interval[1], num[0])):
-        # for j, c in enumerate(np.linspace(interval[2], interval[3], num[1])):
     resolution = (interval[1] - interval[0]) / num[0]
     r = interval[0]
     for i in range(num[0]):
         c = interval[2]
+        # print(r)
         for j in range(num[0]):
             x0 = np.round(r + c*1j, decimals)
             # print(x0)
-            # if abs(x0 - 0.8164) < tol:
-            #     print(x0)
             root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
-            if not root in roots:
-                roots[root] = root_count
+            new_root = True
+            for k in range(len(roots)):
+                if abs(root - roots[k]) < 0.01:
+                    color_map[i, j] = k
+                    new_root = False
+            if new_root is True:
                 root_count += 1
-            color_map[i, j] = roots[root]
+                roots.append(root)
+                color_map[i, j] = root_count - 1
+
             c += resolution
-        r += resolution
-        print(i)
-    # x0 = 0.8164
+        r = np.round(r + resolution, decimals)
+        if i % 10 == 0:
+            print(i)
+        if len(roots) > 5:
+            print(roots)
+    # x0 = 0.001+0.005j
     # root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
-    roots[root] = root_count
+    # print(root)
     return tuple(roots), color_map
 
 
 def test_robust_color_map():
-    # user_input = "x**3 - 3*x"
-    user_input = "x**3 - 2 * x + 2"
+    user_input = "x**4 - 1"
+    # user_input = "x**3 - 2 * x + 2"
     # user_input = "x**4 - 2*x**3 +2*x-1"
-    interval = (-2, 2, -2, 2)
-    num = (4000, 4000)
+    interval = (-3, 3, -3, 3)
+    num = (6000, 6000)
 
     roots, color_map = robust_color_map(user_input, interval, num)
     print(roots)
@@ -158,7 +160,8 @@ def test_robust_color_map():
     print(roots)
 
     # TODO: find a good cmap
-    plt.imshow(color_map.T, cmap='brg', extent=interval)
+    plt.axis('off')
+    plt.imshow(color_map.T, cmap=cm, extent=interval)
     plt.show()
 
 
