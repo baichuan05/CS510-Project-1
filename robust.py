@@ -5,8 +5,8 @@ import cmath
 import math
 from matplotlib.colors import LinearSegmentedColormap
 
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1)]  # R -> G -> B
-n_bins = 5  # Discretizes the interpolation into bins
+colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1)]  # R -> G -> B
+n_bins = 6  # Discretizes the interpolation into bins
 cmap_name = 'my_cm'
 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 
@@ -65,7 +65,7 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     deriv_func: function
         the derivative of the function
     """
-    tol2 = 1e-06
+    tol2 = 1e-08
     xi = x0
     # print(func(xi), deriv_func(xi), func(xi) * deriv_func(xi), tol2)
     for i in range(1, max_iter + 1):
@@ -137,7 +137,7 @@ def robust_color_map(function, interval, num, max_iter=500, tol=2e-03, decimals=
             print(i)
         if len(roots) > 5:
             print(roots)
-    # x0 = 0.001+0.005j
+    # x0 = -0.001-0.001j
     # root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
     # print(root)
     return tuple(roots), color_map
