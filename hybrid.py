@@ -6,8 +6,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import math
 import sys
 
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1)]  # R -> G -> B
-n_bins = 5  # Discretizes the interpolation into bins
+colors = [(1,1,1), (1, 0, 0), (0, 1, 0), (0, 0, 1)]  # R -> G -> B
+n_bins = 4  # Discretizes the interpolation into bins
 cmap_name = 'my_cm'
 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 

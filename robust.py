@@ -65,7 +65,7 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     deriv_func: function
         the derivative of the function
     """
-    tol2 = 1e-08
+    tol2 = 1e-09
     xi = x0
     # print(func(xi), deriv_func(xi), func(xi) * deriv_func(xi), tol2)
     for i in range(1, max_iter + 1):
@@ -80,7 +80,7 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     return i, xi
 
 
-def robust_color_map(function, interval, num, max_iter=500, tol=2e-03, decimals=3):
+def robust_color_map(function, interval, num, max_iter=1000, tol=2e-03, decimals=3):
     """
     Compute the color map of robust newton's method
 
@@ -137,7 +137,7 @@ def robust_color_map(function, interval, num, max_iter=500, tol=2e-03, decimals=
             print(i)
         if len(roots) > 5:
             print(roots)
-    # x0 = -0.001-0.001j
+    # x0 = 0.002+0.002j
     # root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
     # print(root)
     return tuple(roots), color_map
