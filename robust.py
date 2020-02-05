@@ -5,18 +5,16 @@ import cmath
 import math
 from matplotlib.colors import LinearSegmentedColormap
 
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1)]  # R -> G -> B
+colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1)]
 n_bins = 6  # Discretizes the interpolation into bins
 cmap_name = 'my_cm'
 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
+
 
 def _iterate_robust_step(func_list, func, deriv_func, xi, tol):
     fi = func(xi)
     der_yi = deriv_func(xi)
 
-    # # failed
-    # if abs(der_yi * fi) < tol:
-    #     return None
     k = 1
     tmp_func = func_list[1]
     A = abs(fi)
@@ -71,10 +69,7 @@ def _iterate_robust(func_list, func, deriv_func, x0, max_iter, tol):
     for i in range(1, max_iter + 1):
         if abs(func(xi)) < tol2 or abs(deriv_func(xi)) < tol2:
             return i, xi
-        # print(xi)
         xj = _iterate_robust_step(func_list, func, deriv_func, xi, tol)
-        # print(xj)
-
         xi = xj
     xi = -100
     return i, xi
@@ -116,10 +111,8 @@ def robust_color_map(function, interval, num, max_iter=1000, tol=2e-03, decimals
     r = interval[0]
     for i in range(num[0]):
         c = interval[2]
-        # print(r)
         for j in range(num[0]):
             x0 = np.round(r + c*1j, decimals)
-            # print(x0)
             root = np.round(_iterate_robust(func_list, func, deriv_func, x0, max_iter, tol)[1], decimals)
             new_root = True
             for k in range(len(roots)):
@@ -145,8 +138,6 @@ def robust_color_map(function, interval, num, max_iter=1000, tol=2e-03, decimals
 
 def test_robust_color_map():
     user_input = "x**4 - 1"
-    # user_input = "x**3 - 2 * x + 2"
-    # user_input = "x**4 - 2*x**3 +2*x-1"
     interval = (-3, 3, -3, 3)
     num = (6000, 6000)
 

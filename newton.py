@@ -10,34 +10,6 @@ cmap_name = 'my_cm'
 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
 
 
-def newton(function, x0, max_iter=500, tol=1e-08):
-    """ 
-    Newton's method
-
-    Parameters
-    ----------
-    function: string
-        The function that we want to find its root
-    x0: complex number
-        The start point, it looks like 5 + 5 * I
-    tol: float  
-        the max error we accept
-    max_iter: int
-        the max iteration we accept
-
-    Returns
-    -------
-    int
-        number of iteration
-    complex number
-        root of func
-    """
-
-    func = eval("lambda x: " + function)
-    deriv_func = eval("lambda x: " + str(sympy.diff(function)))
-
-    return _iterate_newton(func, deriv_func, x0, max_iter, tol)
-
 def _iterate_newton_step(func, deriv_func, xi, tol):
     fi = func(xi)
     der_yi = deriv_func(xi)
@@ -49,6 +21,7 @@ def _iterate_newton_step(func, deriv_func, xi, tol):
     xj = xi - fi / der_yi
 
     return xj
+
 
 def _iterate_newton(func, deriv_func, x0, max_iter=500, tol=1e-08):
     """
@@ -120,23 +93,8 @@ def newton_color_map(function, interval, num, max_iter=500, tol=1e-8, decimals=5
                 roots.append(root)
                 color_map[i, j] = root_count - 1
 
-
-
-
     return tuple(roots), color_map
 
-def test_newton():
-    user_input = "x**3 - 1"
-    x0 = 1 + 1j
-    iteration, root = newton(user_input, x0)
-    print("Iteration:", iteration)
-    print("Converge to:", root)
-
-    # for test purpose
-    func = sympy.Poly(user_input)
-    print('\nAll roots from sympy')
-    roots = func.all_roots()
-    print(roots)
 
 def test_newton_color_map():
     user_input = "x**3 - 2 * x + 2"
@@ -160,8 +118,6 @@ def test_newton_color_map():
     plt.imshow(color_map.T, cmap=cm, extent=interval)
     plt.show()
 
-if __name__ == "__main__":
-    # test_newton()
 
+if __name__ == "__main__":
     test_newton_color_map()
-    
